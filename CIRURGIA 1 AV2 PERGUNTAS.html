@@ -1,0 +1,1095 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Questionário Interativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            height: 100vh;
+            margin: 0;
+            font-family: 'Poppins', sans-serif;
+            background-color: #f0f0f0;
+        }
+
+        #quiz-title {
+            font-weight: bold;
+            font-size: 2em;
+            text-align: center;
+            margin-top: 20px;
+            margin-bottom: 20px;
+        }
+
+        #quiz-container {
+            text-align: center;
+            background: white;
+            padding: 20px;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            width: 60%;
+            margin-top: 20px;
+        }
+
+        #reset-button {
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #dc3545;
+            color: white;
+            margin-top: 20px;
+            transition: background-color 0.3s;
+            display: none; /* Inicialmente oculto */
+        }
+
+        #reset-button:hover {
+            background-color: #c82333;
+        }
+
+        #question {
+            font-size: 1.5em;
+            margin-bottom: 20px;
+            text-align: left;
+        }
+
+        #options {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .option-label {
+            display: flex;
+            align-items: center;
+            cursor: pointer;
+            padding: 10px;
+            margin: 5px 0;
+            border-radius: 5px;
+            transition: background-color 0.3s;
+            font-size: 1em;
+            width: 100%;
+            background-color: #f8f9fa;
+            border: 1px solid #ced4da;
+        }
+
+        .option-label:hover {
+            background-color: #e9ecef;
+        }
+
+        .option-label input {
+            margin-right: 10px;
+        }
+
+        .opacity-button {
+            margin-right: 10px;
+            cursor: pointer;
+            background-color: transparent;
+            border: none;
+            color: #6c757d;
+            font-size: 18px;
+        }
+
+        .dimmed {
+            opacity: 0.4;
+        }
+
+        #feedback {
+            margin-top: 20px;
+            font-size: 1.2em;
+        }
+
+        #next-question, #summary-next {
+            margin-top: 20px;
+            padding: 10px 20px;
+            font-size: 1em;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            background-color: #007bff;
+            color: white;
+            transition: background-color 0.3s;
+            display: inline-flex;
+            align-items: center;
+        }
+
+        #next-question:hover, #summary-next:hover {
+            background-color: #0056b3;
+        }
+
+        .arrow-icon {
+            margin-left: 5px;
+        }
+
+        #score, #question-counter {
+            position: absolute;
+            top: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            color: #007bff;
+        }
+
+        #score {
+            right: 10px;
+        }
+
+        #question-counter {
+            left: 10px;
+        }
+
+        #summary {
+            display: none;
+            text-align: left;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 20px; /* para compensar a barra de rolagem */
+        }
+
+        #summary h2 {
+            color: green;
+        }
+
+        #start-screen {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        #start-screen h1 {
+            font-size: 2em;
+            margin-bottom: 20px;
+        }
+
+        #start-button {
+            padding: 15px 30px;
+            font-size: 1.2em;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px;
+            background-color: #e50914;
+            color: white;
+            transition: background-color 0.3s;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #start-button:hover {
+            background-color: #b81d24;
+        }
+
+        .footer-text {
+            font-size: small;
+            animation: color-change 3s infinite;
+        }
+
+        @keyframes color-change {
+            0% { color: red; }
+            25% { color: orange; }
+            50% { color: yellow; }
+            75% { color: green; }
+            100% { color: blue; }
+        }
+    </style>
+</head>
+<body>
+    <div id="quiz-title">Cirugia 1 - Unifacig</div>
+    <div id="quiz-container">
+        <div id="start-screen">
+            <h1>Está pronto para iniciar o questionário?</h1>
+            <h4>Feito em 2024.1</h4>
+            <button id="start-button" onclick="startQuiz()">Começar</button>
+        </div>
+        <div id="question" style="display: none;"></div>
+        <div id="options" style="display: none;"></div>
+        <div id="feedback" style="display: none;"></div>
+        <button id="next-question" onclick="loadQuestion()" style="display: none;">Próxima Pergunta</button>
+        <div id="score" style="display: none;"></div>
+        <div id="question-counter" style="display: none;"></div>
+        <div id="summary">
+            <h2>Parabéns, continue se dedicando. Faça mais umas 3x.</h2>
+            <h3>Resumo:</h3>
+            <div id="summary-content">
+                <ul id="summary-list"></ul>
+            </div>
+            <button id="summary-next" onclick="nextPageSummary()">Próxima Página <span class="arrow-icon"><i class="fas fa-arrow-right"></i></span></button>
+        </div>
+        <button id="reset-button" onclick="resetQuiz()" style="display: none;">Voltar ao Início</button>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/js/all.min.js"></script>
+    <script>
+       const questions = [
+       {
+    question: "O fórceps 1 é indicado para extração de quais dentes?",
+    options: [
+        "Dentes posteriores inferiores",
+        "Dentes anteriores superiores",
+        "Dentes molares superiores",
+        "Dentes anteriores inferiores"
+    ],
+    answer: 1
+},
+{
+    question: "O fórceps 150 é indicado para a extração de quais tipos de dentes?",
+    options: [
+        "Molares superiores",
+        "Incisivos, caninos e pré-molares superiores",
+        "Pré-molares inferiores",
+        "Incisivos e caninos inferiores"
+    ],
+    answer: 1
+},
+{
+    question: "Para qual dente é indicado o fórceps 18R?",
+    options: [
+        "Molar inferior direito",
+        "Molar superior esquerdo",
+        "Molar superior direito",
+        "Molar inferior esquerdo"
+    ],
+    answer: 2
+},
+{
+    question: "Qual é a função do fórceps 17?",
+    options: [
+        "Extração de molares superiores com coroa destruída",
+        "Extração de pré-molares inferiores",
+        "Extração de molares inferiores",
+        "Extração de restos radiculares"
+    ],
+    answer: 2
+},
+{
+    question: "O fórceps 69 é utilizado para a extração de:",
+    options: [
+        "Incisivos e caninos superiores",
+        "Molares superiores com coroa intacta",
+        "Restos radiculares",
+        "Incisivos inferiores"
+    ],
+    answer: 2
+},
+{
+    question: "Qual a concentração de clorexidina utilizada para bochecho?",
+    options: [
+        "0,12%",
+        "0,5%",
+        "2%",
+        "4%"
+    ],
+    answer: 0
+},
+{
+    question: "A clorexidina a 2% é usada para:",
+    options: [
+        "Bochecho",
+        "Degermação da face",
+        "Esterilização de instrumentos",
+        "Limpeza de superfícies"
+    ],
+    answer: 1
+},
+{
+    question: "Qual é o primeiro passo na técnica de higienização antisséptica das mãos?",
+    options: [
+        "Aplicar o antisséptico",
+        "Abrir a torneira e molhar as mãos",
+        "Friccionar a palma das mãos",
+        "Enxaguar as mãos"
+    ],
+    answer: 1
+},
+{
+    question: "Qual é o objetivo da antissepsia cirúrgica das mãos?",
+    options: [
+        "Remover sujeiras visíveis",
+        "Eliminar a microbiota transitória e reduzir a residente",
+        "Esterilizar completamente as mãos",
+        "Apenas eliminar bactérias patogênicas"
+    ],
+    answer: 1
+},
+{
+    question: "Na antissepsia da face, os movimentos de limpeza devem seguir de:",
+    options: [
+        "Lateral para a linha média",
+        "Linha média para as laterais",
+        "Inferior para superior",
+        "Superior para inferior"
+    ],
+    answer: 1
+},
+{
+    question: "A exodontia complexa é aquela que requer:",
+    options: [
+        "Uso de fórceps específico",
+        "Confecção de retalho e/ou osteotomia/odontosseção",
+        "Apenas anestesia local",
+        "Apenas bochecho com clorexidina"
+    ],
+    answer: 1
+},
+{
+    question: "Um dos princípios básicos do retalho cirúrgico é que:",
+    options: [
+        "Deve ser feito apenas em tecidos moles",
+        "Deve ter a base mais larga que sua porção final",
+        "Não precisa ser suturado",
+        "Deve ser feito com incisões lineares"
+    ],
+    answer: 1
+},
+{
+    question: "O retalho envelope é realizado através de:",
+    options: [
+        "Incisão vertical na gengiva",
+        "Incisão intrasulcular no dente a ser extraído",
+        "Incisão semilunar",
+        "Incisão linear na gengiva inserida"
+    ],
+    answer: 1
+},
+{
+    question: "O retalho triangular é indicado principalmente para:",
+    options: [
+        "Regiões anteriores da mandíbula",
+        "Regiões posteriores da maxila",
+        "Áreas edêntulas",
+        "Regiões palatinas"
+    ],
+    answer: 1
+},
+{
+    question: "A comunicação bucosinusal é uma complicação comum em extrações de:",
+    options: [
+        "Incisivos inferiores",
+        "Caninos superiores",
+        "Molares superiores",
+        "Pré-molares inferiores"
+    ],
+    answer: 2
+},
+{
+    question: "Neurapraxia é causada por:",
+    options: [
+        "Rompimento total do nervo",
+        "Compressão, estreitamento, inflamação ou hematoma no nervo",
+        "Rompimento parcial do nervo",
+        "Lesão por substâncias químicas"
+    ],
+    answer: 1
+},
+{
+    question: "Axonotmese pode ocorrer devido a:",
+    options: [
+        "Compressão leve do nervo",
+        "Estiramento extenso ou esmagamento do nervo",
+        "Rompimento total do nervo",
+        "Exposição a temperaturas extremas"
+    ],
+    answer: 1
+},
+{
+    question: "Um sintoma de lesão ao nervo lingual pode incluir:",
+    options: [
+        "Diminuição da visão",
+        "Alteração do paladar",
+        "Aumento da sensibilidade auditiva",
+        "Perda do olfato"
+    ],
+    answer: 1
+},
+{
+    question: "A fratura do processo alveolar pode ser causada por:",
+    options: [
+        "Uso de força excessiva com fórceps",
+        "Incisões inadequadas",
+        "Falta de planejamento",
+        "Má higiene oral"
+    ],
+    answer: 0
+},
+{
+    question: "A alveolite é caracterizada por:",
+    options: [
+        "Formação de pus no alvéolo",
+        "Desintegração do coágulo nos primeiros 2 a 4 dias pós-operatórios",
+        "Hemorragia contínua",
+        "Cicatrização rápida do alvéolo"
+    ],
+    answer: 1
+},
+{
+    question: "Para prevenir lesões à ATM durante extrações, deve-se:",
+    options: [
+        "Apoiar a mandíbula durante a extração",
+        "Evitar anestesia local",
+        "Utilizar apenas fórceps 69",
+        "Realizar bochecho com clorexidina 4%"
+    ],
+    answer: 0
+},
+{
+    question: "A melhor maneira de evitar a extração do dente errado é:",
+    options: [
+        "Usar fórceps 150",
+        "Focar a atenção no procedimento e checar várias vezes",
+        "Realizar a cirurgia em ambiente estéril",
+        "Aplicar anestesia geral"
+    ],
+    answer: 1
+},
+{
+    question: "A comunicação bucosinusal pode resultar em:",
+    options: [
+        "Perda de visão",
+        "Sinusite maxilar pós-operatória",
+        "Hipotermia",
+        "Hipertensão"
+    ],
+    answer: 1
+},
+{
+    question: "O tratamento da alveolite geralmente envolve:",
+    options: [
+        "Paracetamol, amoxicilina, metronidazol e alveolex",
+        "Apenas compressas de gelo",
+        "Uso de antissépticos tópicos",
+        "Cirurgia imediata"
+    ],
+    answer: 0
+},
+{
+    question: "Para tratar hematomas e equimoses, deve-se:",
+    options: [
+        "Aplicar compressas frias e usar anti-inflamatórios",
+        "Evitar o uso de qualquer medicação",
+        "Realizar uma nova cirurgia",
+        "Utilizar apenas clorexidina 0,12%"
+    ],
+    answer: 0
+},
+{
+    question: "Qual é o principal objetivo da diérese em cirurgias?",
+    options: [
+        "Remover tecido infectado",
+        "Separar tecidos pela penetração da lâmina cortante",
+        "Realizar biópsia",
+        "Reduzir a dor pós-operatória"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são as vantagens do uso de sutura monofilamento na cirurgia?",
+    options: [
+        "Provoca menos reação tecidual",
+        "É mais fácil de manusear",
+        "Não precisa ser removida após a cirurgia",
+        "Causa menos dor no pós-operatório"
+    ],
+    answer: 0
+},
+{
+    question: "Para remover um tecido ou tumor por meio de excisão, deve-se:",
+    options: [
+        "Utilizar somente bisturi de lâmina nº 15",
+        "Usar um bisturi com lâmina nº 11 ou 12",
+        "Aplicar apenas anestesia local",
+        "Evitar qualquer sutura"
+    ],
+    answer: 1
+},
+{
+    question: "Qual é o efeito esperado da anestesia local em um paciente?",
+    options: [
+        "Sedação profunda",
+        "Analgesia temporária",
+        "Perda da consciência",
+        "Paralisia temporária"
+    ],
+    answer: 1
+},
+{
+    question: "A anestesia infiltrativa é aplicada:",
+    options: [
+        "Diretamente no local da extração",
+        "No músculo do pescoço",
+        "No sistema nervoso central",
+        "Por via intravenosa"
+    ],
+    answer: 0
+},
+{
+    question: "A anestesia troncular é preferível em procedimentos que envolvem:",
+    options: [
+        "Extração de incisivos",
+        "Dentes posteriores",
+        "Extração de raízes residuais",
+        "Apenas extração de caninos"
+    ],
+    answer: 1
+},
+{
+    question: "Qual é a função da anestesia em um procedimento cirúrgico?",
+    options: [
+        "Evitar sangramento excessivo",
+        "Reduzir a necessidade de sutura",
+        "Promover alívio da dor",
+        "Diminuir o tempo cirúrgico"
+    ],
+    answer: 2
+},
+{
+    question: "Durante a sutura de um retalho, é importante:",
+    options: [
+        "Evitar fixar o tecido profundamente",
+        "Aplicar pressão constante",
+        "Realizar sutura a cada 3 cm",
+        "Usar apenas fios absorvíveis"
+    ],
+    answer: 0
+},
+{
+    question: "Quando o paciente deve ser orientado a retornar ao consultório após a extração?",
+    options: [
+        "Somente em caso de dor intensa",
+        "Após 30 dias",
+        "No dia seguinte ou conforme orientação do profissional",
+        "Em caso de hemorragia leve"
+    ],
+    answer: 2
+},
+{
+    question: "Qual é a recomendação comum para a dieta do paciente após a extração?",
+    options: [
+        "Comer apenas alimentos duros",
+        "Evitar o consumo de líquidos nas primeiras 24 horas",
+        "Ingerir alimentos quentes nas primeiras 6 horas",
+        "Optar por alimentos frios e líquidos nas primeiras 24 horas"
+    ],
+    answer: 3
+},
+{
+    question: "A administração de analgésicos após a extração visa principalmente:",
+    options: [
+        "Promover cicatrização rápida",
+        "Prevenir dor e desconforto",
+        "Reduzir a necessidade de retorno ao consultório",
+        "Impedir a formação de alvéolo seco"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são os principais tipos de retalho utilizados em cirurgia oral e em quais situações cada um é mais indicado?",
+    options: [
+        "Retalho semilunar para exodontias simples e biópsias",
+        "Retalho triangular para cirurgias em áreas edêntulas",
+        "Retalho de Kirkland para acesso em cirurgias periapicais",
+        "Retalho de Widman para cirurgias periodontais avançadas"
+    ],
+    answer: 0
+},
+{
+    question: "Descreva as características e a indicação do retalho de Kirkland em cirurgia oral.",
+    options: [
+        "Retalho utilizado para acesso a lesões periapicais",
+        "Retalho triangular utilizado em cirurgias de terceiros molares",
+        "Retalho usado para procedimentos de enxertos ósseos",
+        "Retalho específico para tratamento de fraturas de mandíbula"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são os principais tipos de osteotomia utilizados em cirurgia bucomaxilofacial e em que contextos são aplicados?",
+    options: [
+        "Osteotomia em cunha para correção de deformidades dentofaciais",
+        "Osteotomia segmentada para extração de caninos inclusos",
+        "Osteotomia do tipo L para exodontias complexas",
+        "Osteotomia linear para tratamento de fraturas de mandíbula"
+    ],
+    answer: 0
+},
+{
+    question: "O que caracteriza uma fratura de Le Fort II?",
+    options: [
+        "Fratura transversa que separa a maxila em três fragmentos",
+        "Fratura que envolve a sutura zigomático-frontal",
+        "Fratura horizontal que passa pelo rebordo orbital",
+        "Fratura vertical que atravessa o processo alveolar"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são os tipos de anestesia utilizados em cirurgia bucomaxilofacial para proporcionar anestesia geral?",
+    options: [
+        "Anestesia infiltrativa e troncular",
+        "Anestesia regional e intravenosa",
+        "Anestesia geral e local",
+        "Anestesia epidural e subaracnoidea"
+    ],
+    answer: 2
+},
+{
+    question: "O que é uma osteossíntese rígida e em que circunstâncias é preferida em cirurgia ortognática?",
+    options: [
+        "Fixação de fragmentos ósseos com fios de aço ou titânio",
+        "Tratamento de fraturas de mandíbula com imobilização por 4 a 6 semanas",
+        "Técnica de fixação com placas e parafusos absorvíveis",
+        "Abordagem de correção com osteotomia em cunha"
+    ],
+    answer: 0
+},
+{
+    question: "Explique as indicações e o procedimento para uma osteotomia sagital bilateral em cirurgia ortognática.",
+    options: [
+        "Correção de deformidades dentoalveolares sem necessidade de fixação",
+        "Cirurgia para avanço mandibular com fixação rígida bilateral",
+        "Tratamento de assimetria facial com osteotomia linear",
+        "Procedimento para correção de fraturas de Le Fort"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são as complicações potenciais associadas à osteotomia segmentada em cirurgia ortognática?",
+    options: [
+        "Dor de pós-operatório e inflamação gengival",
+        "Fístula oroantral e comunicação bucosinusal",
+        "Lesão do nervo alveolar inferior e reabsorção óssea",
+        "Deiscência de sutura e infecção do sítio cirúrgico"
+    ],
+    answer: 2
+},
+{
+    question: "Em que situações uma incisão paramediana é preferível em cirurgia oral?",
+    options: [
+        "Acesso a lesões benignas da mandíbula",
+        "Abordagem para remoção de dentes impactados",
+        "Cirurgia para tratamento de cistos maxilares",
+        "Procedimento para correção de fraturas do processo alveolar"
+    ],
+    answer: 0
+},
+{
+    question: "Descreva as diferenças entre a técnica de frenectomia e frenuloplastia.",
+    options: [
+        "Ambas envolvem a remoção do freio labial inferior",
+        "A frenectomia inclui excisão do freio lingual curto",
+        "A frenuloplastia é indicada para correção de mordida cruzada",
+        "A frenectomia é realizada com anestesia local exclusivamente"
+    ],
+    answer: 1
+},
+{
+    question: "O que é uma osteotomia de Lefort I e em que condições é utilizada?",
+    options: [
+        "Osteotomia horizontal para tratamento de fraturas de maxila",
+        "Procedimento para reposicionamento de caninos superiores",
+        "Cirurgia de expansão óssea para próteses dentárias",
+        "Abordagem para correção de assimetrias faciais severas"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são as abordagens cirúrgicas indicadas para tratamento de fraturas do processo alveolar?",
+    options: [
+        "Osteotomia sagital e vestibuloplastia",
+        "Redução aberta com placas e parafusos",
+        "Técnica de sutura com fio de seda",
+        "Cirurgia de biópsia incisional"
+    ],
+    answer: 1
+},
+{
+    question: "O que caracteriza uma dor neuropática pós-cirurgia bucomaxilofacial e como é tratada?",
+    options: [
+        "Dor aguda de curta duração que responde bem a analgésicos comuns",
+        "Dor crônica resultante de danos ao nervo periférico que pode exigir medicação específica",
+        "Sensação de pressão na área cirúrgica tratada com anti-inflamatórios",
+        "Formação de alvéolo seco e dor associada"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são os critérios para seleção de pacientes para cirurgia ortognática?",
+    options: [
+        "Idade avançada e histórico de trauma facial",
+        "Deficiência dentofacial que afeta a função mastigatória e estética facial",
+        "Presença de doenças periodontais e ausência de dentes naturais",
+        "Pacientes com assimetria facial moderada"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são as técnicas cirúrgicas utilizadas para correção de mordida aberta anterior em pacientes com deformidades dentoalveolares?",
+    options: [
+        "Profiloplastia e incisões intrasulculares",
+        "Osteotomia sagital e frênulotomia",
+        "Cirurgia de avanço mandibular e fixação rígida",
+        "Uso de aparelho ortodôntico e alinhadores"
+    ],
+    answer: 2
+},
+{
+    question: "O que é uma osteotomia de BSSO e como ela é realizada em cirurgia ortognática?",
+    options: [
+        "Osteotomia vertical para reposicionamento de arco mandibular",
+        "Procedimento para correção de fraturas de base de crânio",
+        "Cirurgia para expansão óssea maxilar em pacientes jovens",
+        "Osteotomia sagital bilateral para avanço mandibular"
+    ],
+    answer: 3
+},
+{
+    question: "Quais são as principais complicações associadas à técnica de expansão rápida da maxila?",
+    options: [
+        "Formação de abscesso e infecção bucal",
+        "Dor muscular e limitação de movimento mandibular",
+        "Deiscência de sutura e deslocamento do aparelho ortodôntico",
+        "Inflamação do seio maxilar e reabsorção radicular"
+    ],
+    answer: 2
+},
+{
+    question: "Quais são os critérios clínicos para indicação de extração de terceiros molares inclusos em cirurgia oral?",
+    options: [
+        "Presença de dor crônica e reabsorção radicular",
+        "Posição angulada que afeta a erupção dos segundos molares",
+        "Desenvolvimento de cisto periapical e fratura radicular",
+        "Inflamação da mucosa oral e cefaleia recorrente"
+    ],
+    answer: 1
+},
+{
+    question: "Como a incisão de Rowe é aplicada em cirurgia ortognática e qual é o objetivo dessa técnica?",
+    options: [
+        "Incisão intrasulcular para acesso a lesões periapicais",
+        "Abordagem para remoção de cistos maxilares",
+        "Incisão para acesso a ossos nasais em cirurgias rinoplásticas",
+        "Técnica para exposição de ramo mandibular em osteotomias sagitais"
+    ],
+    answer: 3
+},
+{
+    question: "O que caracteriza uma osteomielite crônica e quais são as abordagens de tratamento em cirurgia bucomaxilofacial?",
+    options: [
+        "Infecção óssea persistente com necessidade de desbridamento cirúrgico",
+        "Dor aguda após extração dentária com resolução espontânea",
+        "Inflamação da mucosa oral com resposta favorável a antibióticos",
+        "Formação de cisto ósseo mandibular após trauma facial"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são os tipos de suturas utilizados em cirurgia bucomaxilofacial e em que situações cada um é mais indicado?",
+    options: [
+        "Sutura simples para fechamento de feridas superficiais",
+        "Sutura contínua para fixação de retalhos em cirurgias periodontais",
+        "Sutura em Y para aproximação de bordas de feridas tensionadas",
+        "Sutura subcutânea para redução de risco de cicatriz hipertrófica"
+    ],
+    answer: 2
+},
+{
+    question: "Como a técnica de extração cirúrgica difere da extração simples de um dente?",
+    options: [
+        "Envolve incisão e osteotomia para remoção de raízes residuais",
+        "Utiliza apenas elevadores e fórceps para extração de dentes impactados",
+        "Requer uso de anestesia geral em vez de anestesia local",
+        "Não exige sutura após o procedimento"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são as implicações clínicas da lesão do nervo lingual em cirurgias bucomaxilofaciais e como pode ser evitada?",
+    options: [
+        "Parestesia transitória com duração máxima de 1 semana",
+        "Alteração permanente da sensibilidade do assoalho da boca e da língua",
+        "Limitação de movimento mandibular que requer fisioterapia",
+        "Complicação rara que não pode ser prevenida"
+    ],
+    answer: 1
+},
+{
+    question: "Descreva os passos do procedimento de enucleação de cisto mandibular em cirurgia oral.",
+    options: [
+        "Incisão linear e remoção do conteúdo cístico com curetagem",
+        "Uso de osteótomo e elevação do retalho mucoperiosteal",
+        "Aplicação de anestesia troncular e excisão de tecido mole",
+        "Descompressão do cisto seguida de preenchimento com material osteoindutor"
+    ],
+    answer: 0
+},
+{
+    question: "O que é uma dor fantasma após amputação de segmentos ósseos em cirurgia bucomaxilofacial e como é tratada?",
+    options: [
+        "Sensação de dor na área cirúrgica mesmo após remoção completa",
+        "Resolução espontânea sem necessidade de intervenção",
+        "Inflamação pós-operatória tratada com analgésicos comuns",
+        "Necessidade de reamputação para alívio da dor persistente"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são as abordagens cirúrgicas indicadas para tratamento de fraturas zigomáticas?",
+    options: [
+        "Osteossíntese rígida com fixação de placas e parafusos",
+        "Redução aberta com técnica de sutura em Y",
+        "Cirurgia de descompressão do seio maxilar",
+        "Remoção conservadora sem intervenção cirúrgica"
+    ],
+    answer: 0
+},
+{
+    question: "Quais são as principais indicações para uso de fixação intermaxilar em cirurgia ortognática?",
+    options: [
+        "Correção de mordida cruzada posterior",
+        "Tratamento de fraturas de mandíbula em pacientes idosos",
+        "Abordagem para reabsorção óssea alveolar",
+        "Cirurgia para redução de desalinhamento dentário"
+    ],
+    answer: 0
+},
+{
+    question: "Qual é a função do enxerto ósseo em cirurgia bucomaxilofacial e como é selecionado o material apropriado?",
+    options: [
+        "Promoção de cicatrização por segunda intenção",
+        "Aumento de volume ósseo para inserção de implantes dentários",
+        "Redução de sangramento pós-operatório em exodontias",
+        "Prevenção de formação de alvéolo seco após extração"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são os critérios para diagnóstico e tratamento de osteonecrose dos maxilares induzida por bifosfonatos?",
+    options: [
+        "Presença de necrose óssea com histórico de uso de anti-inflamatórios",
+        "Dor óssea aguda após trauma facial que requer imobilização",
+        "Inflamação crônica da mucosa oral com necessidade de curetagem",
+        "Uso prolongado de bifosfonatos e exposição óssea"
+    ],
+    answer: 3
+},
+{
+    question: "O que é uma infecção odontogênica fascial e quais são os riscos associados?",
+    options: [
+        "Infecção localizada com risco mínimo de disseminação",
+        "Infecção que se estende aos planos profundos do pescoço e face",
+        "Inflamação da gengiva tratada com antibióticos orais",
+        "Complicação rara sem necessidade de intervenção cirúrgica"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são os tipos de tratamento indicados para fraturas de côndilo mandibular e suas respectivas implicações funcionais?",
+    options: [
+        "Redução aberta com fios de aço e limitação de movimento",
+        "Tratamento conservador com imobilização e fisioterapia",
+        "Fixação rígida com placas e parafusos e risco de anquilose",
+        "Cirurgia de descompressão do côndilo e aumento da mobilidade mandibular"
+    ],
+    answer: 2
+},
+{
+    question: "Quais são as indicações para cirurgia de torus mandibular e como é realizada a remoção?",
+    options: [
+        "Presença de torus mandibular sintomático com impacto estético",
+        "Abordagem para reabsorção óssea mandibular em pacientes idosos",
+        "Cirurgia de reconstrução óssea após trauma facial severo",
+        "Remoção conservadora sem intervenção cirúrgica"
+    ],
+    answer: 0
+},
+{
+    question: "Explique os passos e as indicações da técnica de gengivoplastia em cirurgia periodontal.",
+    options: [
+        "Remoção de cistos gengivais com incisão e curetagem",
+        "Procedimento para tratamento de recessão gengival com enxerto",
+        "Cirurgia para remoção de tecido gengival hiperplásico",
+        "Técnica para fixação de retalho mucogengival em enxerto ósseo"
+    ],
+    answer: 2
+},
+{
+    question: "O que caracteriza um distúrbio temporomandibular e quais são as opções de tratamento em cirurgia bucomaxilofacial?",
+    options: [
+        "Síndrome da dor miofascial com resolução espontânea",
+        "Dor mandibular crônica com necessidade de medicação analgésica",
+        "Desalinhamento mandibular com indicação de osteotomia sagital",
+        "Disfunção articular com dor e limitação de movimento mandibular"
+    ],
+    answer: 3
+},
+{
+    question: "Quais são as técnicas de abordagem para tratamento de fraturas nasoetmoidais e suas respectivas indicações?",
+    options: [
+        "Osteotomia sagital e fixação com placas e parafusos",
+        "Redução fechada e imobilização externa com splint nasal",
+        "Cirurgia de septoplastia e remodelação de dorso nasal",
+        "Remoção conservadora sem necessidade de intervenção cirúrgica"
+    ],
+    answer: 1
+},
+{
+    question: "Quais são as complicações potenciais associadas à técnica de avanço de maxila em cirurgia ortognática?",
+    options: [
+        "Parestesia transitória e inflamação da mucosa oral",
+        "Formação de abscesso e reabsorção radicular",
+        "Deiscência de sutura e deslocamento de aparelho ortodôntico",
+        "Infecção do seio maxilar e limitação de movimento mandibular"
+    ],
+    answer: 0
+},
+{
+    question: "Qual é o papel da tomografia computadorizada na avaliação pré-operatória de pacientes para cirurgia bucomaxilofacial?",
+    options: [
+        "Avaliação tridimensional da anatomia óssea e das estruturas adjacentes",
+        "Exame diagnóstico para detecção de cárie dentária e lesões periapicais",
+        "Avaliação de mobilidade dentária em pacientes com doença periodontal",
+        "Imagem de escolha para análise de estruturas moles da face"
+    ],
+    answer: 0
+},
+];
+
+        let score = 0;
+        let questionIndex = 0;
+
+        function startQuiz() {
+            document.getElementById('start-screen').style.display = 'none';
+            document.getElementById('question').style.display = 'block';
+            document.getElementById('options').style.display = 'block';
+            document.getElementById('feedback').style.display = 'block';
+            document.getElementById('next-question').style.display = 'inline-block';
+            document.getElementById('score').style.display = 'block';
+            document.getElementById('question-counter').style.display = 'block';
+            document.getElementById('reset-button').style.display = 'inline-block';
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const questionContainer = document.getElementById('question');
+            const optionsContainer = document.getElementById('options');
+            const feedbackContainer = document.getElementById('feedback');
+            const scoreElement = document.getElementById('score');
+            const questionCounter = document.getElementById('question-counter');
+            const nextQuestionButton = document.getElementById('next-question');
+            const summaryContainer = document.getElementById('summary');
+            const summaryList = document.getElementById('summary-list');
+
+            if (questionIndex >= questions.length) {
+                feedbackContainer.innerHTML = '';
+                optionsContainer.innerHTML = '';
+                questionContainer.innerHTML = '';
+                nextQuestionButton.style.display = 'none';
+                summaryContainer.style.display = 'block';
+
+                summaryList.innerHTML = '';
+
+                questions.forEach((question, index) => {
+                    const listItem = document.createElement('li');
+                    listItem.innerHTML = `<strong>${index + 1}. ${question.question}</strong> - Resposta correta: <span style="color: green;">${question.options[question.answer]}</span>`;
+                    summaryList.appendChild(listItem);
+                });
+
+                if (summaryContainer.innerText.length > 800) {
+                    document.getElementById('summary-next').style.display = 'inline-block';
+                }
+
+                document.getElementById('reset-button').style.display = 'inline-block'; // Mostra o botão "Voltar ao Início"
+
+                return;
+            }
+
+            feedbackContainer.innerHTML = '';
+            optionsContainer.innerHTML = '';
+
+            const question = questions[questionIndex];
+
+            questionContainer.innerHTML = `<strong>${question.question}</strong>`;
+
+            question.options.forEach((option, index) => {
+                const optionId = `option-${questionIndex}-${index}`;
+                const label = document.createElement('label');
+                label.setAttribute('class', 'option-label');
+                label.setAttribute('id', optionId);
+
+                const opacityButton = document.createElement('button');
+                opacityButton.setAttribute('type', 'button');
+                opacityButton.setAttribute('class', 'opacity-button');
+                opacityButton.setAttribute('onclick', `toggleOpacity('${optionId}')`);
+                opacityButton.innerHTML = '<i class="fas fa-cut"></i>';
+
+                const radioInput = document.createElement('input');
+                radioInput.setAttribute('type', 'radio');
+                radioInput.setAttribute('name', `option-${questionIndex}`);
+                radioInput.setAttribute('value', index);
+                radioInput.setAttribute('onclick', `checkAnswer(${index}, ${question.answer}, '${optionId}', '${question.options[question.answer]}')`);
+
+                const optionText = document.createTextNode(option);
+
+                label.appendChild(opacityButton);
+                label.appendChild(radioInput);
+                label.appendChild(optionText);
+
+                optionsContainer.appendChild(label);
+            });
+
+            scoreElement.innerText = `Pontos: ${score}`;
+            questionCounter.innerText = `Pergunta ${questionIndex + 1} de ${questions.length}`;
+            questionIndex++;
+        }
+
+        function checkAnswer(selectedIndex, correctIndex, selectedOption, correctOption) {
+            const feedbackContainer = document.getElementById('feedback');
+            if (selectedIndex === correctIndex) {
+                feedbackContainer.innerHTML = `<p style="color: green;"><strong>Correto! A resposta é</strong> "${correctOption}".</p>`;
+                score++;
+            } else {
+                feedbackContainer.innerHTML = `<p style="color: red;">Errado. A resposta correta é "${correctOption}".</p>`;
+            }
+
+            const scoreElement = document.getElementById('score');
+            scoreElement.innerText = `Pontos: ${score}`;
+        }
+
+        function resetQuiz() {
+            score = 0;
+            questionIndex = 0;
+            document.getElementById('start-screen').style.display = 'flex';
+            document.getElementById('question').style.display = 'none';
+            document.getElementById('options').style.display = 'none';
+            document.getElementById('feedback').style.display = 'none';
+            document.getElementById('next-question').style.display = 'none';
+            document.getElementById('score').style.display = 'none';
+            document.getElementById('question-counter').style.display = 'none';
+            document.getElementById('summary').style.display = 'none';
+            document.getElementById('summary-list').innerHTML = '';
+            document.getElementById('reset-button').style.display = 'none';
+            document.getElementById('summary-next').style.display = 'none';
+        }
+
+        function toggleOpacity(optionId) {
+            const optionLabel = document.getElementById(optionId);
+            optionLabel.classList.toggle('dimmed');
+        }
+
+        function nextPageSummary() {
+            alert('Implemente a lógica para a próxima página do resumo aqui.');
+            // Aqui você implementará a lógica para ir para a próxima página do resumo, se necessário
+        }
+
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('start-screen').style.display = 'flex';
+        });
+    </script>
+
+    <span style="position: fixed; bottom: 0; left: 0;">
+        <div class="footer-text">Desenvolvido por @caua_lucaz</div>
+    </span>
+</body>
+</html>
